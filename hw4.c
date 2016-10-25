@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <malloc.h>
 
 struct memory_region{
   size_t * start;
@@ -106,7 +107,12 @@ void sweep() {
 
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
-  // TODO
+ 	if(ptr > heap_mem.end || ptr < heap_mem.start)
+		return NULL;
+	else{
+		ptr = ((void *)ptr) - 1;
+		return *ptr;
+	}	
 }
 
 void walk_region_and_mark(void* start, void* end) {
