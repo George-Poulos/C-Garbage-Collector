@@ -110,7 +110,7 @@ size_t * is_pointer(size_t * ptr) {
  	if(ptr > heap_mem.end || ptr < heap_mem.start)
 		return NULL;
 	else{
-		ptr = ((void *)ptr) - 1;
+		ptr = (ptr) - 1;
 		return *ptr;
 	}	
 }
