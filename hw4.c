@@ -102,7 +102,16 @@ void build_heap_index() {
 
 // the actual collection code
 void sweep() {
-  // TODO
+ 	size_t *tmp = heap_mem.start;
+	while(tmp < heap_mem.end){
+		if(is_marked(tmp)){
+			free(tmp);
+		}
+		else{
+			clear_mark(tmp);
+		}
+	tmp = next_chunk(tmp);
+	}
 }
 
 //determine if what "looks" like a pointer actually points to a block in the heap
