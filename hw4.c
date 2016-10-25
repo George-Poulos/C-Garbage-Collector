@@ -104,8 +104,8 @@ void build_heap_index() {
 void sweep() {
  	size_t *tmp = heap_mem.start;
 	while(tmp < heap_mem.end){
-		if(is_marked(tmp)){
-			free(tmp);
+		if(!is_marked(tmp)){
+			mark(tmp);
 		}
 		else{
 			clear_mark(tmp);
