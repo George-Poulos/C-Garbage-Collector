@@ -112,7 +112,6 @@ size_t * is_pointer(size_t * ptr) {
 		begin = end ;
 	}
 	return begin;
-	
 }
 
 int chunkAllocated(size_t* b) {
@@ -128,25 +127,15 @@ int chunkAllocated(size_t* b) {
 void sweep() {
 	size_t *current_mem =  heap_mem.start-1;
 	size_t *end = heap_mem.end;
-	//printf("%x\n%x\n",current_mem, end);
 	while (current_mem < end && current_mem) {
-	//printf("helllllloooo\n\n\n");
-        size_t* current_chunk = current_mem;  // points to header section of current chunk
-       	//if((void *)current_chunk >= sbrk(0))return;
-        // now check if the pointer in question is between current and next chunk
-        size_t* next_mem = next_chunk(current_chunk);
-        // if current chunk is marked, unmark it so we reset for the next gc() call 
+	size_t* current_chunk = current_mem;  // points to header section of current chunk
+       	size_t* next_mem = next_chunk(current_chunk);
         if (is_marked(current_chunk)) {
-	   // printf("mark check %x\n", current_chunk);
-            clear_mark(current_chunk);
-        // if current chunk is unmarked AND allocated, then we can free it (give it mem pointer)
+	   clear_mark(current_chunk);
         } 
 	else if(in_use(current_chunk)){
-            	//printf("free : %x\n", current_chunk);
-		free(current_chunk+1);
-	  
-        }
-        
+            	free(current_chunk+1);	 
+        } 
         current_mem = next_mem;  // move on to next chunk
         end = sbrk(0);  // update heap end in case the OS shrinks it after a free
     }	
@@ -155,27 +144,27 @@ void sweep() {
 long length(size_t* b) {
 
     // b-1 gives the chunk size, we need to remove lower three bits cuz flags
-    return malloc_usable_size(b+1)/sizeof(size_t); // return size in words (8 bytes each)
+    return malloc_usable_size(b)/(sizeof(size_t)); // return size in words (8 bytes each)
 }
 
 void rec_mark (size_t *current_chunk){
 	size_t *b = is_pointer(current_chunk);
-	if (!current_chunk || b == NULL || is_marked(b))
+	if (current_chunk == NULL || b == NULL || is_marked(b))
         	return;
-
-	int len = length(b);
-	mark(b);
-    // len is length of entire chunk minus header
-    // now call this recursively on every block in this chunk (within mem user data)
-    for (int i=0; i < len; i++) {
-        size_t* nextchunk = is_pointer((size_t*)(b+i));
-        rec_mark(nextchunk);
-    }
+	else{	
+		mark(b);
+		int len = length(b);
+	
+    		for (int i=0; i < len; i++) {
+        	size_t* nextchunk = is_pointer((size_t*)*(b+i));
+        	rec_mark(nextchunk);
+    		}
+	}
 }
 
 void walk_region_and_mark(void* start, void* end) {
 	size_t *iter = start;
-	while(iter < end){
+	while((void*)iter < end){
 		rec_mark((size_t*)*iter);
 		iter++;
 	}
