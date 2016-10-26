@@ -155,8 +155,8 @@ void rec_mark (size_t *current_chunk){
 		mark(b);
 		int len = length(b);
 	
-    		for (int i=0; i < len; i++) {
-        	size_t* nextchunk = is_pointer((size_t*)*(b+i));
+    		for (int i=1; i < len; i++) {
+        	size_t* nextchunk = *(b+i);
         	rec_mark(nextchunk);
     		}
 	}
