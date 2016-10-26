@@ -114,10 +114,10 @@ size_t * is_pointer(size_t * ptr) {
     // traverse entire heap and find the header for this chunk
     size_t* current_mem = heap_mem.start;  // points to mem section of current chunk
     while (current_mem < heap_mem.end) {
-        size_t* current_chunk = current_mem-1;  // points to header section of current chunk
+        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
         // now check if the pointer in question is between current and next chunk
-	if(current_chunk < sbrk(0)) return;
-        size_t* next_mem = next_chunk(current_chunk) + 1;
+	if((void*)current_chunk < sbrk(0)) return NULL;
+        size_t* next_mem = next_chunk(current_chunk) + 2;
         if (current_mem <= ptr && ptr < next_mem)
             return current_chunk;  // return header to this chunk
         
@@ -138,19 +138,19 @@ int chunkAllocated(size_t* b) {
 
 // the actual collection code
 void sweep() {
-	size_t current_mem = heap_mem.start-1;
+	size_t current_mem = heap_mem.start;
 	size_t end = heap_mem.end;
 	while (current_mem < end) {
 
-        size_t* current_chunk = current_mem;  // points to header section of current chunk
-       	if(current_chunk < sbrk(0)) return;
+        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
+       	if(current_chunk < sbrk(0))return;
         // now check if the pointer in question is between current and next chunk
-        size_t* next_mem = next_chunk(current_chunk) + 1;
+        size_t* next_mem = next_chunk(current_chunk) + 2;
         // if current chunk is marked, unmark it so we reset for the next gc() call 
         if (is_marked(current_chunk)) {
             clear_mark(current_chunk);
         // if current chunk is unmarked AND allocated, then we can free it (give it mem pointer)
-        } else if (chunkAllocated(current_chunk)) {
+        } else{ 
             free(current_mem);
         }
         
@@ -172,8 +172,8 @@ void rec_mark (size_t *current_chunk){
         return;
     mark(current_chunk);
     // len is length of entire chunk minus header
-    int len = length(current_chunk) - 1;
-    size_t* current_mem = current_chunk + 1;
+    int len = length(current_chunk) - 2;
+    size_t* current_mem = current_chunk + 2;
     // now call this recursively on every block in this chunk (within mem user data)
     for (int i=0; i < len; i++) {
         size_t* nextchunk = is_pointer((size_t*)*(current_mem + i));
