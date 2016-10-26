@@ -144,7 +144,7 @@ void sweep() {
 long length(size_t* b) {
 
     // b-1 gives the chunk size, we need to remove lower three bits cuz flags
-    return malloc_usable_size(b)/(sizeof(size_t)); // return size in words (8 bytes each)
+    return malloc_usable_size(b+1)/(sizeof(size_t)); // return size in words (8 bytes each)
 }
 
 void rec_mark (size_t *current_chunk){
@@ -152,11 +152,10 @@ void rec_mark (size_t *current_chunk){
 	if (current_chunk == NULL || b == NULL || is_marked(b))
         	return;
 	else{	
-		mark(b);
 		int len = length(b);
-	
+		mark(b);
     		for (int i=1; i < len; i++) {
-        	size_t* nextchunk = *(b+i);
+        	size_t* nextchunk = *(b + i);
         	rec_mark(nextchunk);
     		}
 	}
