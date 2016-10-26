@@ -138,12 +138,12 @@ int chunkAllocated(size_t* b) {
 
 // the actual collection code
 void sweep() {
-	size_t current_mem = heap_mem.start;
-	size_t end = heap_mem.end;
+	size_t *current_mem =  heap_mem.start;
+	size_t *end = heap_mem.end;
 	while (current_mem < end) {
 
         size_t* current_chunk = current_mem-2;  // points to header section of current chunk
-       	if(current_chunk < sbrk(0))return;
+       	if((void *)current_chunk < sbrk(0))return;
         // now check if the pointer in question is between current and next chunk
         size_t* next_mem = next_chunk(current_chunk) + 2;
         // if current chunk is marked, unmark it so we reset for the next gc() call 
@@ -182,11 +182,11 @@ void rec_mark (size_t *current_chunk){
 }
 
 void walk_region_and_mark(void* start, void* end) {
-    for (size_t* current_global = start; current_global < end; current_global++) {
-        size_t* current_chunk = is_pointer((size_t*)*current_global);
+    for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
+        size_t* current_chunk = is_pointer(current_global);
 
         // if not NULL and we're not looping inside of the heap, then mark it recursively
-        if (current_chunk && (current_global < start || current_global > end)) {
+        if (current_chunk && ((void *)current_global < start || (void *)current_global > end)) {
         	rec_mark(current_chunk);        
     	}
     }
