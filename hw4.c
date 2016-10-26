@@ -105,7 +105,7 @@ size_t * is_pointer(size_t * ptr) {
  	if (!ptr) {
         return NULL;
     }
-    // first check whether it's in range of heap memory (exclude last block)
+  /*  // first check whether it's in range of heap memory (exclude last block)
     if (ptr < heap_mem.start || ptr >= heap_mem.end) {
         return NULL;
     }
@@ -121,7 +121,7 @@ size_t * is_pointer(size_t * ptr) {
             return current_chunk;  // return header to this chunk
         
         current_mem = next_mem;  // move on to next chunk
-    }
+    }*/
 
     return NULL;
 }
