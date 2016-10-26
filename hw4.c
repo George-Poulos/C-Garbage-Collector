@@ -100,20 +100,6 @@ void build_heap_index() {
   // TODO
 }
 
-// the actual collection code
-void sweep() {
- 	size_t *tmp = heap_mem.start;
-	while(tmp < heap_mem.end){
-		if(!is_marked(tmp)){
-			mark(tmp);
-		}
-		else{
-			clear_mark(tmp);
-		}
-	tmp = next_chunk(tmp);
-	}
-}
-
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
  	if(ptr > heap_mem.end || ptr < heap_mem.start)
@@ -124,8 +110,36 @@ size_t * is_pointer(size_t * ptr) {
 	}	
 }
 
+// the actual collection code
+void sweep() {
+/*        size_t *tmp = heap_mem.start;
+        while(tmp < heap_mem.end){     
+           	if(is_marked(tmp)){
+                        clear_mark(tmp);
+                }
+                else if(chunk_size(tmp) > 0){
+                        free(tmp);
+                }
+        tmp = next_chunk(tmp);
+        }
+*/
+}
+
 void walk_region_and_mark(void* start, void* end) {
-  // TODO
+	size_t *tmp = start;
+	size_t *b;
+	if(b = is_pointer(tmp) == NULL)
+		return;
+	if(is_marked(b))
+		return;
+	mark(b);
+	int i = 0;
+	int len = sizeof(b);
+	for(i = 0; i < len; i++){
+		walk_region_and_mark((void *)b[i],next_chunk(b));
+	}
+	return;
+	      
 }
 
 // standard initialization 
