@@ -102,10 +102,7 @@ void build_heap_index() {
 
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
- 	if (!ptr) {
-        return NULL;
-    }
-  /*  // first check whether it's in range of heap memory (exclude last block)
+    // first check whether it's in range of heap memory (exclude last block)
     if (ptr < heap_mem.start || ptr >= heap_mem.end) {
         return NULL;
     }
@@ -114,14 +111,14 @@ size_t * is_pointer(size_t * ptr) {
     // traverse entire heap and find the header for this chunk
     size_t* current_mem = heap_mem.start;  // points to mem section of current chunk
     while (current_mem < heap_mem.end) {
-        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
+        size_t* current_chunk = current_mem-1;  // points to header section of current chunk
         // now check if the pointer in question is between current and next chunk
-        size_t* next_mem = next_chunk(current_chunk) + 2;
+        size_t* next_mem = next_chunk(current_chunk) + 1;
         if (current_mem <= ptr && ptr < next_mem)
             return current_chunk;  // return header to this chunk
         
         current_mem = next_mem;  // move on to next chunk
-    }*/
+    }
 
     return NULL;
 }
