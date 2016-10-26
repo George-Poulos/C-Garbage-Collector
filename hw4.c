@@ -116,7 +116,8 @@ size_t * is_pointer(size_t * ptr) {
     while (current_mem < heap_mem.end) {
         size_t* current_chunk = current_mem-2;  // points to header section of current chunk
         // now check if the pointer in question is between current and next chunk
-        size_t* next_mem = next_chunk(current_chunk) + 2;
+        if(current_chunk < (size_t*)sbrk(0)) return NULL;
+	size_t* next_mem = next_chunk(current_chunk) + 2;
         if (current_mem <= ptr && ptr < next_mem)
             return current_chunk;  // return header to this chunk
         
