@@ -106,7 +106,7 @@ size_t * is_pointer(size_t * ptr) {
 	if(ptr < heap_mem.start || ptr >= heap_mem.end)return NULL;
 	while(begin != NULL){
 		size_t * end = next_chunk(begin);
-		if(begin < ptr && ptr < end){
+		if(ptr > begin && ptr < end){
 			return begin;
 		}
 		begin = end ;
@@ -140,7 +140,8 @@ void sweep() {
 	   // printf("mark check %x\n", current_chunk);
             clear_mark(current_chunk);
         // if current chunk is unmarked AND allocated, then we can free it (give it mem pointer)
-        } else if(in_use(current_chunk)){
+        } 
+	else if(in_use(current_chunk)){
             	//printf("free : %x\n", current_chunk);
 		free(current_chunk+1);
 	  
@@ -166,8 +167,8 @@ void rec_mark (size_t *current_chunk){
 	mark(b);
     // len is length of entire chunk minus header
     // now call this recursively on every block in this chunk (within mem user data)
-    for (int i=1; i < len; i++) {
-        size_t* nextchunk = is_pointer((size_t*)(b[i]));
+    for (int i=0; i < len; i++) {
+        size_t* nextchunk = is_pointer((size_t*)(b+i));
         rec_mark(nextchunk);
     }
 }
