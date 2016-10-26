@@ -114,13 +114,14 @@ size_t * is_pointer(size_t * ptr) {
     // traverse entire heap and find the header for this chunk
     size_t* current_mem = heap_mem.start;  // points to mem section of current chunk
     while (current_mem < heap_mem.end) {
-        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
+        size_t* current_chunk = current_mem-1;  // points to header section of current chunk
         // now check if the pointer in question is between current and next chunk
-	if(current_chunk < sbrk(0)) return;
-        size_t* next_mem = next_chunk(current_chunk) + 2;
-        if (current_mem <= ptr && ptr < next_mem)
-            return current_chunk;  // return header to this chunk
-        
+	if(current_chunk == NULL) return NULL;
+        size_t* next_mem = next_chunk(current_chunk) + 1;
+        if (current_mem <= ptr && ptr < next_mem){
+           printf("%x\n",current_chunk);	
+	   return current_chunk;  // return header to this chunk
+        }
         current_mem = next_mem;  // move on to next chunk	
 }
 }
@@ -158,12 +159,12 @@ void sweep() {
 }
 
 long length(size_t* b) {
-
     // b-1 gives the chunk size, we need to remove lower three bits cuz flags
     return (long)(*(b + 1)) >> 3;  // return size in words (8 bytes each)
 }
 
 void rec_mark (size_t *current_chunk){
+	printf("before %x\n",current_chunk);
 	if (!current_chunk)
         return;
     if (is_marked(current_chunk))
@@ -175,6 +176,7 @@ void rec_mark (size_t *current_chunk){
     // now call this recursively on every block in this chunk (within mem user data)
     for (int i=0; i < len; i++) {
         size_t* nextchunk = is_pointer((size_t*)*(current_mem + i));
+	printf("%d\n",nextchunk);
         rec_mark(nextchunk);
     }
 }
@@ -182,7 +184,7 @@ void rec_mark (size_t *current_chunk){
 void walk_region_and_mark(void* start, void* end) {
     for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
         size_t* current_chunk = is_pointer(current_global);
-
+	//printf("before 2 %x\n",current_chunk);
         // if not NULL and we're not looping inside of the heap, then mark it recursively
         if (current_chunk && ((void *)current_global < start || (void *)current_global > end)) {
         	rec_mark(current_chunk);        
