@@ -103,7 +103,7 @@ void build_heap_index() {
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
 	size_t * begin = heap_mem.start-1;
-	if(ptr < heap_mem.start && ptr >= heap_mem.end)return NULL;
+	if(ptr < heap_mem.start || ptr >= heap_mem.end)return NULL;
 	while(begin != NULL){
 		size_t * end = next_chunk(begin);
 		if(begin < ptr && ptr < end){
