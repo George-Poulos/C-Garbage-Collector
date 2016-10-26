@@ -102,29 +102,14 @@ void build_heap_index() {
 
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
-	if (!ptr) {
-        return NULL;
-    }
-    // first check whether it's in range of heap memory (exclude last block)
-    if (ptr < heap_mem.start || ptr >= heap_mem.end) {
-        return NULL;
-    }
-
-    // find the header for this chunk
-    // traverse entire heap and find the header for this chunk
-    size_t* current_mem = heap_mem.start;  // points to mem section of current chunk
-    while (current_mem < heap_mem.end) {
-        size_t* current_chunk = current_mem-1;  // points to header section of current chunk
-        // now check if the pointer in question is between current and next chunk
-	if((void*)current_chunk < sbrk(0)) return NULL;
-        size_t* next_mem = next_chunk(current_chunk) + 1;
-        if (current_mem <= ptr && ptr < next_mem)
-            return current_chunk;  // return header to this chunk
-        
-        current_mem = next_mem;  // move on to next chunk
-    }
-
-    return NULL;
+	size_t *begin = heap_mem.start-1;
+	while(begin != NULL){
+		size_t * end = next_chunk(begin);
+		if (begin < ptr && ptr < end)
+			return begin;
+		begin = end;
+	}
+   	return begin;
 }
 
 int chunkAllocated(size_t* b) {
