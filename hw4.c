@@ -179,14 +179,14 @@ void rec_mark (size_t *current_chunk){
 }
 
 void walk_region_and_mark(void* start, void* end) {
-    for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
+    /*for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
         size_t* current_chunk = is_pointer(current_global);
 
         // if not NULL and we're not looping inside of the heap, then mark it recursively
         if (current_chunk && ((void *)current_global < start || (void *)current_global > end)) {
         	rec_mark(current_chunk);        
     	}
-    }
+    }*/
 }
 
 // standard initialization 
