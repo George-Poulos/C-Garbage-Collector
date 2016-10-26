@@ -102,27 +102,17 @@ void build_heap_index() {
 
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
-	if (!ptr) {
-        return NULL;
-    }
-    // first check whether it's in range of heap memory (exclude last block)
-    if (ptr < heap_mem.start || ptr >= heap_mem.end) {
-        return NULL;
-    }
-
-    // find the header for this chunk
-    // traverse entire heap and find the header for this chunk
-    size_t* current_mem = heap_mem.start;  // points to mem section of current chunk
-    while (current_mem < heap_mem.end) {
-        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
-        // now check if the pointer in question is between current and next chunk
-	if(current_chunk < sbrk(0)) return;
-        size_t* next_mem = next_chunk(current_chunk) + 2;
-        if (current_mem <= ptr && ptr < next_mem)
-            return current_chunk;  // return header to this chunk
-        
-        current_mem = next_mem;  // move on to next chunk	
-}
+	size_t * begin = heap_mem.start-1;
+	if(ptr < heap_mem.start && ptr >= heap_mem.end)return NULL;
+	while(begin != NULL){
+		size_t * end = next_chunk(begin);
+		if(begin < ptr && ptr < end){
+			return begin;
+		}
+		begin = end ;
+	}
+	return begin;
+	
 }
 
 int chunkAllocated(size_t* b) {
@@ -136,20 +126,24 @@ int chunkAllocated(size_t* b) {
 
 // the actual collection code
 void sweep() {
-	size_t *current_mem =  heap_mem.start;
+	size_t *current_mem =  heap_mem.start-1;
 	size_t *end = heap_mem.end;
-	while (current_mem < end) {
-
-        size_t* current_chunk = current_mem-1;  // points to header section of current chunk
-       	if((void *)current_chunk < sbrk(0))return;
+	//printf("%x\n%x\n",current_mem, end);
+	while (current_mem < end && current_mem) {
+	//printf("helllllloooo\n\n\n");
+        size_t* current_chunk = current_mem;  // points to header section of current chunk
+       	//if((void *)current_chunk >= sbrk(0))return;
         // now check if the pointer in question is between current and next chunk
-        size_t* next_mem = next_chunk(current_chunk) + 1;
+        size_t* next_mem = next_chunk(current_chunk);
         // if current chunk is marked, unmark it so we reset for the next gc() call 
         if (is_marked(current_chunk)) {
+	   // printf("mark check %x\n", current_chunk);
             clear_mark(current_chunk);
         // if current chunk is unmarked AND allocated, then we can free it (give it mem pointer)
-        } else{ 
-            free(current_mem);
+        } else if(in_use(current_chunk)){
+            	//printf("free : %x\n", current_chunk);
+		free(current_chunk+1);
+	  
         }
         
         current_mem = next_mem;  // move on to next chunk
@@ -160,34 +154,30 @@ void sweep() {
 long length(size_t* b) {
 
     // b-1 gives the chunk size, we need to remove lower three bits cuz flags
-    return (long)(*(b + 1)) >> 3;  // return size in words (8 bytes each)
+    return malloc_usable_size(b+1)/sizeof(size_t); // return size in words (8 bytes each)
 }
 
 void rec_mark (size_t *current_chunk){
-	if (!current_chunk)
-        return;
-    if (is_marked(current_chunk))
-        return;
-    mark(current_chunk);
+	size_t *b = is_pointer(current_chunk);
+	if (!current_chunk || b == NULL || is_marked(b))
+        	return;
+
+	int len = length(b);
+	mark(b);
     // len is length of entire chunk minus header
-    int len = length(current_chunk) - 1;
-    size_t* current_mem = current_chunk + 1;
     // now call this recursively on every block in this chunk (within mem user data)
-    for (int i=0; i < len; i++) {
-        size_t* nextchunk = is_pointer((size_t*)*(current_mem + i));
+    for (int i=1; i < len; i++) {
+        size_t* nextchunk = is_pointer((size_t*)(b[i]));
         rec_mark(nextchunk);
     }
 }
 
 void walk_region_and_mark(void* start, void* end) {
-    for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
-        size_t* current_chunk = is_pointer(current_global);
-
-        // if not NULL and we're not looping inside of the heap, then mark it recursively
-        if (current_chunk && ((void *)current_global < start || (void *)current_global > end)) {
-        	rec_mark(current_chunk);        
-    	}
-    }
+	size_t *iter = start;
+	while(iter < end){
+		rec_mark((size_t*)*iter);
+		iter++;
+	}
 }
 
 // standard initialization 
