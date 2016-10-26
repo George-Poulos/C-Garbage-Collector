@@ -116,15 +116,14 @@ size_t * is_pointer(size_t * ptr) {
     while (current_mem < heap_mem.end) {
         size_t* current_chunk = current_mem-1;  // points to header section of current chunk
         // now check if the pointer in question is between current and next chunk
-	if((void*)current_chunk < sbrk(0)) return NULL;
+	if(current_chunk == NULL) return NULL;
         size_t* next_mem = next_chunk(current_chunk) + 1;
-        if (current_mem <= ptr && ptr < next_mem)
-            return current_chunk;  // return header to this chunk
-        
-        current_mem = next_mem;  // move on to next chunk
-    }
-
-    return NULL;
+        if (current_mem <= ptr && ptr < next_mem){
+           printf("%x\n",current_chunk);	
+	   return current_chunk;  // return header to this chunk
+        }
+        current_mem = next_mem;  // move on to next chunk	
+}
 }
 
 int chunkAllocated(size_t* b) {
