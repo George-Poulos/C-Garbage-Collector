@@ -116,12 +116,13 @@ size_t * is_pointer(size_t * ptr) {
     while (current_mem < heap_mem.end) {
         size_t* current_chunk = current_mem-1;  // points to header section of current chunk
         // now check if the pointer in question is between current and next chunk
-	if(current_chunk < sbrk(0)) return;
+	if(current_chunk < sbrk(0)) return NULL;
         size_t* next_mem = next_chunk(current_chunk) + 1;
         if (current_mem <= ptr && ptr < next_mem)
             return current_chunk;  // return header to this chunk
         
         current_mem = next_mem;  // move on to next chunk	
+}
 }
 
 int chunkAllocated(size_t* b) {
@@ -179,14 +180,14 @@ void rec_mark (size_t *current_chunk){
 }
 
 void walk_region_and_mark(void* start, void* end) {
-    /*for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
+    for (size_t* current_global = (size_t*)start; (void *)current_global < end; current_global++) {
         size_t* current_chunk = is_pointer(current_global);
 
         // if not NULL and we're not looping inside of the heap, then mark it recursively
         if (current_chunk && ((void *)current_global < start || (void *)current_global > end)) {
         	rec_mark(current_chunk);        
     	}
-    }*/
+    }
 }
 
 // standard initialization 
