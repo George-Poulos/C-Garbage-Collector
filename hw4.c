@@ -136,7 +136,7 @@ int chunkAllocated(size_t* b) {
 
 // the actual collection code
 void sweep() {
-	/*size_t *current_mem =  heap_mem.start;
+	size_t *current_mem =  heap_mem.start;
 	size_t *end = heap_mem.end;
 	while (current_mem < end) {
 
@@ -154,7 +154,7 @@ void sweep() {
         
         current_mem = next_mem;  // move on to next chunk
         end = sbrk(0);  // update heap end in case the OS shrinks it after a free
-    }	*/
+    }	
 }
 
 long length(size_t* b) {
