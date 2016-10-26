@@ -102,27 +102,53 @@ void build_heap_index() {
 
 //determine if what "looks" like a pointer actually points to a block in the heap
 size_t * is_pointer(size_t * ptr) {
- 	if(ptr > heap_mem.end || ptr < heap_mem.start)
-		return NULL;
-	else{
-		ptr = (ptr) - 1;
-		return *ptr;
-	}	
+ 	if (!ptr) {
+        return NULL;
+    }
+    // first check whether it's in range of heap memory (exclude last block)
+    if (ptr < heap_mem.start || ptr >= heap_mem.end) {
+        return NULL;
+    }
+
+    // find the header for this chunk
+    // traverse entire heap and find the header for this chunk
+    size_t* current_mem = heap_mem.start;  // points to mem section of current chunk
+    while (current_mem < heap_mem.end) {
+        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
+        // now check if the pointer in question is between current and next chunk
+        size_t* next_mem = next_chunk(current_chunk) + 2;
+        if (current_mem <= ptr && ptr < next_mem)
+            return current_chunk;  // return header to this chunk
+        
+        current_mem = next_mem;  // move on to next chunk
+    }
+
+    return NULL;
 }
 
 // the actual collection code
 void sweep() {
-/*        size_t *tmp = heap_mem.start;
-        while(tmp < heap_mem.end){     
-           	if(is_marked(tmp)){
-                        clear_mark(tmp);
-                }
-                else if(chunk_size(tmp) > 0){
-                        free(tmp);
-                }
-        tmp = next_chunk(tmp);
+    /*
+    size_t current_mem = heap_mem.start;
+    size_t end = heap_mem.end; 
+    while (current_mem < end) {
+
+        size_t* current_chunk = current_mem-2;  // points to header section of current chunk
+        
+        // now check if the pointer in question is between current and next chunk
+        size_t* next_mem = next_chunk(current_chunk) + 2;
+
+        // if current chunk is marked, unmark it so we reset for the next gc() call 
+        if (is_marked(current_chunk)) {
+            clear_mark(current_chunk);
+        // if current chunk is unmarked AND allocated, then we can free it (give it mem pointer)
+        } else if (malloc_usable_size(current_chunk)) {
+            free(current_mem);
         }
-*/
+        
+        current_mem = next_mem;  // move on to next chunk
+        end = sbrk(0);  // update heap end in case the OS shrinks it after a free
+    }*/
 }
 
 void walk_region_and_mark(void* start, void* end) {
@@ -134,7 +160,7 @@ void walk_region_and_mark(void* start, void* end) {
 		return;
 	mark(b);
 	int i = 0;
-	int len = sizeof(b);
+	int len = chunk_size(b);
 	for(i = 0; i < len; i++){
 		walk_region_and_mark((void *)b[i],next_chunk(b));
 	}
