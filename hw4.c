@@ -141,7 +141,7 @@ void sweep() {
     }	
 }
 
-long length(size_t* b) {
+int length(size_t* b) {
 
     // b-1 gives the chunk size, we need to remove lower three bits cuz flags
     return malloc_usable_size(b+1)/(sizeof(size_t)); // return size in words (8 bytes each)
