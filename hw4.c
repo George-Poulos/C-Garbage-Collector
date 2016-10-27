@@ -141,10 +141,9 @@ void sweep() {
     }	
 }
 
+//returns the size of a chunk
 int length(size_t* b) {
-
-    // b-1 gives the chunk size, we need to remove lower three bits cuz flags
-    return malloc_usable_size(b+1)/(sizeof(size_t)); // return size in words (8 bytes each)
+    	return malloc_usable_size(b+1)/(sizeof(size_t));
 }
 
 void rec_mark (size_t *current_chunk){
@@ -155,7 +154,7 @@ void rec_mark (size_t *current_chunk){
 		int len = length(b);
 		mark(b);
     		for (int i=1; i < len; i++) {
-        	size_t* nextchunk = *(b + i);
+        	size_t* nextchunk = (size_t*)*(b + i);
         	rec_mark(nextchunk);
     		}
 	}
