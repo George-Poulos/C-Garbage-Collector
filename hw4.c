@@ -114,34 +114,30 @@ size_t * is_pointer(size_t * ptr) {
 	return begin;
 }
 
-int chunkAllocated(size_t* b) {
-    size_t* nextchunk = next_chunk(b);
-    // avoid segfaults by checking if the given pointer is within heap
-    if (nextchunk < heap_mem.start || nextchunk >= heap_mem.end)
-        return 0;
-    // the least sig. bit of next_chunk+1 has current chunk allocated bit
-    return (long)(*(nextchunk + 1)) & 1;
-}
 
-// the actual collection code
+// collect all non-marked chunk and free
 void sweep() {
 	size_t *current_mem =  heap_mem.start-1;
 	size_t *end = heap_mem.end;
 	while (current_mem < end && current_mem) {
-	size_t* current_chunk = current_mem;  // points to header section of current chunk
-       	size_t* next_mem = next_chunk(current_chunk);
-        if (is_marked(current_chunk)) {
-	   clear_mark(current_chunk);
-        } 
-	else if(in_use(current_chunk)){
-            	free(current_chunk+1);	 
-        } 
-        current_mem = next_mem;  // move on to next chunk
-        end = sbrk(0);  // update heap end in case the OS shrinks it after a free
-    }	
+	
+		size_t* current_chunk = current_mem;  
+       		size_t* next_mem = next_chunk(current_chunk);
+
+        	if (is_marked(current_chunk)) {
+	   		clear_mark(current_chunk);
+        	} 
+	
+		else if(in_use(current_chunk)){
+            		free(current_chunk+1);	 
+        	} 
+        	
+		current_mem = next_mem;
+        	end = sbrk(0);
+    	}	
 }
 
-//returns the size of a chunk
+//returns the length of a chunk
 int length(size_t* b) {
     	return malloc_usable_size(b+1)/(sizeof(size_t));
 }
